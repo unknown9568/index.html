@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دورة حماية البيانات الرقمية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 95%;
+            height: 90vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .intro-screen, .quiz-screen, .result-screen {
+            display: none;
+        }
+
+        .intro-screen.active, .quiz-screen.active, .result-screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .intro-text {
+            font-size: 1.15em;
+            line-height: 2;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .intro-features {
+            display: grid;
+            gap: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.1em;
+            padding: 8px 0;
+        }
+
+        .feature-icon {
+            color: #4CAF50;
+            font-size: 1.2em;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffeb3b;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .question-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: right;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+            flex: 1;
+            align-content: center;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .options::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .options::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .options::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            text-align: right;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .option.selected {
+            background: rgba(76, 175, 80, 0.4);
+            border-color: #4CAF50;
+        }
+
+        .option.correct {
+            background: rgba(76, 175, 80, 0.6);
+            border-color: #4CAF50;
+        }
+
+        .option.wrong {
+            background: rgba(244, 67, 54, 0.6);
+            border-color: #f44336;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px auto;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            display: block;
+            width: fit-content;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .score {
+            font-size: 2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .explanation {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            text-align: right;
+            line-height: 1.6;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(15px);
+            animation: slideInUp 0.5s ease-out;
+            font-size: 1em;
+            font-weight: 500;
+            max-height: 100px;
+            overflow-y: auto;
+            z-index: 100;
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 45px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .explanation::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .explanation::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .explanation::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .explanation::before {
+            content: "💡";
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            background: rgba(255, 235, 59, 0.9);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(255, 235, 59, 0.3);
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2em;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .university-logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.7em;
+            text-align: right;
+            line-height: 1.2;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .warning {
+            color: #ffeb3b;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        .final-stats {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes tickTock {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .timer.ticking {
+            animation: tickTock 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" onclick="toggleSound()" id="soundBtn">🔊</button>
+    
+    <div class="container">
+        <!-- شاشة المقدمة -->
+        <div class="intro-screen active" id="introScreen">
+            <div class="university-logo">
+                جامعة الإمام عبدالرحمن بن فيصل<br>
+                مركز الاتصالات وتقنية المعلومات
+            </div>
+            <h1>دورة حماية البيانات الرقمية <span style="font-size: 0.8em;">🛡️</span></h1>
+            <div class="intro-text">
+                <p style="font-size: 1.3em; margin-bottom: 25px;">مرحباً بك في دورة حماية البيانات الرقمية!</p>
+                <p style="margin-bottom: 20px;">ستواجه 10 أسئلة مهمة حول حماية البيانات الرقمية.</p>
+            </div>
+            
+            <div class="intro-features">
+                <div class="feature-item">
+                    <span class="feature-icon">✅</span>
+                    <span>لديك 50 ثانية لكل سؤال</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✅</span>
+                    <span>ستحصل على نقاط إضافية للإجابة السريعة</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✅</span>
+                    <span>ستتعلم فوائد مهمة بعد كل سؤال</span>
+                </div>
+            </div>
+            
+            <div style="margin: 35px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <p style="font-size: 1.15em; font-weight: 600;">🎯 هدف اللعبة: تعلم كيفية حماية نفسك في العالم الرقمي!</p>
+            </div>
+            <button class="btn pulse" onclick="startQuiz()">🚀 ابدأ اللعبة</button>
+        </div>
+
+        <!-- شاشة الأسئلة -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="university-logo">
+                جامعة الإمام عبدالرحمن بن فيصل<br>
+                مركز الاتصالات وتقنية المعلومات
+            </div>
+            <div class="timer" id="timer">⏰ الوقت المتبقي: 50</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="questionNumber" class="score">السؤال 1 من 10</div>
+            
+            <div class="question-container">
+                <div class="question" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <div class="explanation" id="explanation" style="display: none;"></div>
+                <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>التالي ⬅️</button>
+            </div>
+        </div>
+
+        <!-- شاشة النتائج -->
+        <div class="result-screen" id="resultScreen">
+            <div class="university-logo">
+                جامعة الإمام عبدالرحمن بن فيصل<br>
+                مركز الاتصالات وتقنية المعلومات
+            </div>
+            <h1>🎉 انتهت اللعبة!</h1>
+            <div class="score" id="finalScore"></div>
+            <div class="final-stats" id="finalStats"></div>
+            <button class="btn" onclick="restartQuiz()">🔄 العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        // إعدادات الصوت
+        let soundEnabled = true;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // إنشاء الأصوات
+        function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playCorrectSound() {
+            playSound(523, 0.2); // C5
+            setTimeout(() => playSound(659, 0.2), 100); // E5
+            setTimeout(() => playSound(784, 0.3), 200); // G5
+        }
+
+        function playWrongSound() {
+            playSound(196, 0.5, 'sawtooth');
+        }
+
+        function playClickSound() {
+            playSound(800, 0.1);
+        }
+
+        function playTimeWarning() {
+            playSound(1000, 0.1);
+            setTimeout(() => playSound(1000, 0.1), 200);
+        }
+
+        function playTickSound() {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        // بيانات الأسئلة
+        const questions = [
+            {
+                question: "ما المقصود بالبيانات الرقمية؟",
+                options: [
+                    "المعلومات المكتوبة على الورق فقط",
+                    "أي معلومات يتم تخزينها أو معالجتها أو مشاركتها رقميًا",
+                    "الملفات الموجودة على الإنترنت فقط",
+                    "الصور ومقاطع الفيديو فقط"
+                ],
+                correct: 1,
+                explanation: "التعرف على مفهوم البيانات الرقمية يساعد على إدراك أهمية حمايتها سواء كانت ملفات شخصية، كلمات مرور، أو معلومات حساسة."
+            },
+            {
+                question: "أي من الأمثلة التالية يمثل اختراقًا للبيانات؟",
+                options: [
+                    "حذف ملف شخصي عن طريق الخطأ",
+                    "دخول مستخدم غير مصرح له إلى قاعدة بيانات الشركة",
+                    "إعادة تعيين كلمة مرور الحساب",
+                    "تحديث برنامج مكافحة الفيروسات"
+                ],
+                correct: 1,
+                explanation: "اختراق البيانات يحدث عند وصول طرف غير مخوّل إلى معلومات سرية أو حساسة."
+            },
+            {
+                question: "أي من الخيارات التالية يساعد أكثر على حماية البريد الإلكتروني من التصيد الاحتيالي؟",
+                options: [
+                    "فتح الروابط في أي رسالة تصل مباشرة",
+                    "استخدام بريد إلكتروني عام لكل الحسابات",
+                    "تفعيل التحقق بخطوتين وعدم الضغط على الروابط المجهولة",
+                    "الرد على الرسائل المشبوهة للتأكد من صحتها"
+                ],
+                correct: 2,
+                explanation: "التصيد الاحتيالي يعتمد على خداع المستخدم بالنقر على روابط ضارة، والمصادقة الثنائية تقلل فرص الاختراق."
+            },
+            {
+                question: "أي من التصرفات التالية يعتبر خطرًا على حماية البيانات الرقمية في بيئة العمل؟",
+                options: [
+                    "مشاركة الملفات عبر البريد المؤسسي الرسمي فقط",
+                    "استخدام فلاش USB مجهول المصدر على جهاز الشركة",
+                    "تغيير كلمة المرور كل 90 يومًا",
+                    "تفعيل المصادقة الثنائية على الحسابات"
+                ],
+                correct: 1,
+                explanation: "الأجهزة الخارجية غير الموثوقة قد تحتوي على برمجيات خبيثة تؤدي إلى اختراق النظام وتسريب البيانات."
+            },
+            {
+                question: "ما هو أفضل أسلوب لإنشاء كلمة مرور قوية؟",
+                options: [
+                    "استخدام تاريخ الميلاد والاسم الأول",
+                    "كلمة بسيطة وسهلة التذكر مثل 123456",
+                    "مزيج من الحروف الكبيرة والصغيرة والأرقام والرموز",
+                    "نفس كلمة المرور لجميع الحسابات"
+                ],
+                correct: 2,
+                explanation: "كلمات المرور المعقدة تقلل من احتمالية اختراق الحسابات عبر التخمين أو الهجمات الآلية."
+            },
+            {
+                question: "ما الذي يجب فعله عند استلام ملف PDF من مصدر غير معروف؟",
+                options: [
+                    "فتح الملف مباشرة إذا كان يبدو رسميًا",
+                    "تنزيله ورفعه على السحابة للتأكد",
+                    "فحص الملف باستخدام مضاد الفيروسات قبل الفتح",
+                    "إعادة إرساله إلى زميل للتجربة أولًا"
+                ],
+                correct: 2,
+                explanation: "ملفات PDF قد تحتوي على أكواد خبيثة مخفية، وفحصها قبل فتحها يمنع أي ضرر محتمل."
+            },
+            {
+                question: "اختر الرابط الرسمي الصحيح لمنصة أبشر السعودية:",
+                options: [
+                    "www.absher-sa.org",
+                    "www.absher.gov.sa",
+                    "www.absher-login.com",
+                    "www.sa-absher.net"
+                ],
+                correct: 1,
+                explanation: "التحقق من الروابط الرسمية يحمي من المواقع المزيفة التي قد تسرق بيانات تسجيل الدخول."
+            },
+            {
+                question: "أي من هذه التصرفات يعتبر خطأ شائع عند التعامل مع البيانات الرقمية؟",
+                options: [
+                    "ترك الحساب مفتوحًا على الأجهزة العامة",
+                    "تسجيل الخروج بعد الانتهاء من العمل",
+                    "استخدام شبكة VPN عند العمل عن بعد",
+                    "حفظ الملفات المهمة في نسخة احتياطية"
+                ],
+                correct: 0,
+                explanation: "ترك الحسابات مفتوحة يعرضها لخطر الاستخدام غير المصرح به وسرقة البيانات."
+            },
+            {
+                question: "ما الإجراء الأكثر فعالية لحماية البيانات الحساسة المخزنة على جهازك الشخصي؟",
+                options: [
+                    "وضع الجهاز في مكان آمن فقط",
+                    "تشفير الملفات أو المجلدات المهمة بكلمات مرور قوية",
+                    "عدم توصيل الجهاز بالإنترنت نهائيًا",
+                    "الاعتماد على اسم الملف لتمييز البيانات المهمة"
+                ],
+                correct: 1,
+                explanation: "التشفير يحمي البيانات حتى لو تم الوصول الفعلي للجهاز أو سرقته."
+            },
+            {
+                question: "أي من هذه الممارسات تساعد في حماية الأطفال من المخاطر الرقمية؟",
+                options: [
+                    "السماح لهم باستخدام أي موقع دون رقابة",
+                    "مشاركة معلوماتهم الشخصية في الألعاب",
+                    "استخدام أدوات الرقابة الأبوية والتوعية بالمخاطر",
+                    "تركهم يعتمدون على خبرتهم فقط"
+                ],
+                correct: 2,
+                explanation: "التوعية والرقابة تساعد على تقليل فرص تعرض الأطفال للتصيد أو المحتوى الضار عبر الإنترنت."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 50;
+        let timer;
+        let selectedAnswer = null;
+        let correctAnswers = 0;
+        let totalTime = 0;
+
+        function startQuiz() {
+            playClickSound();
+            document.getElementById('introScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.add('active');
+            showQuestion();
+            startTimer();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('questionNumber').textContent = `السؤال ${currentQuestionIndex + 1} من 10`;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            const arabicLetters = ['أ', 'ب', 'ج', 'د'];
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = `${arabicLetters[index]}) ${option}`;
+                optionDiv.onclick = () => selectAnswer(index, optionDiv);
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            // تحديث شريط التقدم
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            selectedAnswer = null;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('explanation').style.display = 'none';
+            timeLeft = 50;
+        }
+
+        function selectAnswer(answerIndex, optionElement) {
+            if (selectedAnswer !== null) return;
+            
+            playClickSound();
+            selectedAnswer = answerIndex;
+            
+            // تسليط الضوء على الإجابة المحددة
+            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+            
+            // إيقاف العداد الزمني
+            clearInterval(timer);
+            
+            // عرض الإجابة الصحيحة
+            const question = questions[currentQuestionIndex];
+            document.querySelectorAll('.option').forEach((opt, index) => {
+                if (index === question.correct) {
+                    opt.classList.add('correct');
+                } else if (index === selectedAnswer && index !== question.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+
+            // حساب النقاط
+            if (selectedAnswer === question.correct) {
+                correctAnswers++;
+                const timeBonus = Math.max(0, timeLeft - 20);
+                score += 10 + timeBonus;
+                playCorrectSound();
+            } else {
+                playWrongSound();
+            }
+
+            // عرض الشرح (الفائدة فقط)
+            document.getElementById('explanation').textContent = question.explanation;
+            document.getElementById('explanation').style.display = 'block';
+            
+            document.getElementById('nextBtn').disabled = false;
+            totalTime += (50 - timeLeft);
+        }
+
+        function nextQuestion() {
+            playClickSound();
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+                startTimer();
+            } else {
+                showResults();
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 50;
+            document.getElementById('timer').classList.remove('warning', 'ticking');
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `⏰ الوقت المتبقي: ${timeLeft}`;
+                
+                // صوت التيك كل ثانية عندما يقل الوقت عن 10 ثواني
+                if (timeLeft <= 10 && timeLeft > 0) {
+                    document.getElementById('timer').classList.add('warning', 'ticking');
+                    playTickSound();
+                    
+                    if (timeLeft <= 5) {
+                        playTimeWarning();
+                    }
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (selectedAnswer === null) {
+                        // عرض الإجابة الصحيحة عند انتهاء الوقت
+                        const question = questions[currentQuestionIndex];
+                        document.querySelectorAll('.option').forEach((opt, index) => {
+                            if (index === question.correct) {
+                                opt.classList.add('correct');
+                            }
+                        });
+                        
+                        // عرض الشرح (الفائدة فقط)
+                        document.getElementById('explanation').textContent = question.explanation;
+                        document.getElementById('explanation').style.display = 'block';
+                        
+                        document.getElementById('nextBtn').disabled = false;
+                        totalTime += 50;
+                        playWrongSound();
+                    }
+                }
+            }, 1000);
+        }
+
+        function showResults() {
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('resultScreen').classList.add('active');
+            
+            const percentage = Math.round((correctAnswers / questions.length) * 100);
+            const averageTime = Math.round(totalTime / questions.length);
+            
+            let grade = '';
+            if (percentage >= 90) grade = 'ممتاز! 🏆';
+            else if (percentage >= 80) grade = 'جيد جداً! 🥇';
+            else if (percentage >= 70) grade = 'جيد! 🥈';
+            else if (percentage >= 60) grade = 'مقبول 🥉';
+            else grade = 'يحتاج تحسين 📚';
+
+            document.getElementById('finalScore').innerHTML = `
+                النتيجة النهائية: ${score} نقطة<br>
+                ${grade}
+            `;
+            
+            document.getElementById('finalStats').innerHTML = `
+                <p><strong>📊 إحصائيات اللعبة:</strong></p>
+                <p>• الإجابات الصحيحة: ${correctAnswers} من ${questions.length}</p>
+                <p>• النسبة المئوية: ${percentage}%</p>
+                <p>• متوسط الوقت للسؤال: ${averageTime} ثانية</p>
+                <p>• إجمالي النقاط: ${score} نقطة</p>
+                <br>
+                <p><strong>💡 تذكر:</strong> الأمن السيبراني يبدأ بالوعي والممارسة الصحيحة!</p>
+            `;
+
+            if (percentage >= 80) {
+                playCorrectSound();
+                setTimeout(playCorrectSound, 300);
+            }
+        }
+
+        function restartQuiz() {
+            playClickSound();
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswers = 0;
+            totalTime = 0;
+            clearInterval(timer);
+            
+            document.getElementById('resultScreen').classList.remove('active');
+            document.getElementById('introScreen').classList.add('active');
+        }
+
+        // تفعيل AudioContext عند أول تفاعل
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
